@@ -15,7 +15,7 @@
 
                 <div class="space-y-2 min-h-[40px]">
                     @forelse ($status->tasks as $task)
-                        <div class="bg-white shadow rounded p-3 group" data-task-id="{{ $task->id }}"
+                        <div class="bg-white shadow rounded p-3 group" data-task-id="{{ $task->id }}" data-id="{{ $task->id }}" 
                             wire:key="task-{{ $task->id }}">
                             <button type="button" wire:click="startEdit({{ $task->id }})" class="w-full text-left">
                                 <p class="text-sm font-medium text-gray-800">
@@ -131,10 +131,17 @@
 
                         if (!taskId || !newStatusId) return;
 
+                        const sortableInstance = Sortable.get(cardZone);
+                        if (!sortableInstance) return;
+
+                        //移動したあとのカラム内にあるIDを上から順に配列で取得する
+                        const positionIds = sortableInstance.toArray().map(Number);
+
                         // Livewireに通知（Livewire 3 系: グローバル Livewire.dispatch）
                         Livewire.dispatch('task-moved', {
                             taskId: taskId,
                             newStatusId: newStatusId,
+                            positionIds: positionIds,
                         });
                     },
                 });
