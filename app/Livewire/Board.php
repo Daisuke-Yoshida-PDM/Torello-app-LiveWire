@@ -44,10 +44,19 @@ class Board extends Component
     {
         $this->validateOnly('newTaskTitle');
 
+        //現在このステータスにある、一番大きい position の数値を調べる(なにもなければnull)
+        $maxPosition = Task::where('user_id', Auth::id())
+                            ->where('status_id', $statusId)
+                            ->max('position');
+
+        $nextPosition = $maxPosition !== null ? $maxPosition+1 : 0;
+
+        //計算した position を含めて、新しくタスクを作成する
         Task::create([
             'title' => $this->newTaskTitle,
             'user_id' => Auth::id(),
             'status_id' => $statusId,
+            'position' => $nextPosition,
         ]);
 
         $this->newTaskTitle = '';
@@ -95,7 +104,7 @@ class Board extends Component
     }
 
     #[On('task-moved')]
-    public function moveTask(int $taskId, int $newStatusId):void 
+    public function moveTask(int $taskId, int $newStatusId, array $positionIds = []):void 
     {
         $task = Task::where('user_id', Auth::id())->find($taskId);
 
@@ -112,6 +121,15 @@ class Board extends Component
         $task->update([
             'status_id' => $status->id,
         ]);
+
+        //届いたIDの並び順リスト（配列）を上から順番に処理する
+        foreach($positionIds as $index => $id) {
+            Task::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->update([
+                'position' => $index,
+            ]);
+        }
     }
 
     public function render()
@@ -119,7 +137,8 @@ class Board extends Component
             $statuses = Status::query()
             ->with(['tasks' => function($query) {
                 $query->where('user_id', Auth::id())
-                      ->orderByDesc('id');
+                //タスクID降順だったところをポジション昇順に変更
+                      ->orderBy('position', 'asc');
             }])
             ->orderBy('id')
             ->get();
