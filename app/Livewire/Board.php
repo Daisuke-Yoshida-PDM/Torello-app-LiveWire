@@ -77,8 +77,8 @@ class Board extends Component
         $this->editingTaskId = $task->id;
         $this->editingTitle = $task->title;
         $this->editingDescription = $task->description;
-        $this->editingStartDate = $task->start_date;
-        $this->editingDueDate = $task->due_date;
+        $this->editingStartDate = $task->start_date?->format('Y-m-d');
+        $this->editingDueDate = $task->due_date?->format('Y-m-d');
     }
 
     public function cancelEdit():void
