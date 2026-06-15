@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Status;
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -118,18 +119,20 @@ class Board extends Component
             return;
         }
 
-        $task->update([
-            'status_id' => $status->id,
-        ]);
-
-        //届いたIDの並び順リスト（配列）を上から順番に処理する
-        foreach($positionIds as $index => $id) {
-            Task::where('user_id', Auth::id())
-            ->where('id', $id)
-            ->update([
-                'position' => $index,
+        DB::transaction(function () use ($task, $status, $positionIds) {
+            $task->update([
+                'status_id' => $status->id,
             ]);
-        }
+
+            //届いたIDの並び順リスト（配列）を上から順番に処理する
+            foreach ($positionIds as $index => $id) {
+                Task::where('user_id', Auth::id())
+                    ->where('id', $id)
+                    ->update([
+                        'position' => $index,
+                    ]);
+            }
+        });
     }
 
     public function render()
