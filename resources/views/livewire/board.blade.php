@@ -92,6 +92,22 @@
                     @enderror
                 </div>
 
+                <div class="space-y-1">
+                    <label class="text-xs text-gray-600">タスク開始日（任意）</label>
+                    <input type="date" wire:model="editingStartDate" class="w-full border rounded px-3 py-2 text-sm">
+                    @error('editingStartDate')
+                        <p class="text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs text-gray-600">タスク期限日（任意）</label>
+                    <input type="date" wire:model="editingDueDate" class="w-full border rounded px-3 py-2 text-sm">
+                    @error('editingDueDate')
+                        <p class="text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div class="flex justify-end gap-2">
                     <button type="button" wire:click="cancelEdit"
                         class="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300">
