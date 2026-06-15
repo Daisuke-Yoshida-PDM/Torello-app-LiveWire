@@ -15,20 +15,26 @@ class Board extends Component
     // ----- 新規追加フォーム用 -----
     public ?int $showFormForStatus = null;
 
-    #[validate('required|string|max:100')]
+    #[Validate('required|string|max:100')]
     public string $newTaskTitle = '';
 
     // ----- 編集モーダル用 -----
     public ?int $editingTaskId = null;
 
-    #[validate('required|string|max:100')]
+    #[Validate('required|string|max:100')]
     public string $editingTitle = '';
 
-    #[validate('nullable|string|max:1000')]
+    #[Validate('nullable|string|max:1000')]
     public ?string $editingDescription = null;
 
+    #[Validate('nullable|date')]
+    public ?string $editingStartDate = null;
+
+    #[Validate('nullable|date|after_or_equal:editingStartDate')]
+    public ?string $editingDueDate = null;
+
     // ----- アクション -----
-    public function openForm(int $statusId): void 
+    public function openForm(int $statusId): void
     {
         $this->showFormForStatus = $statusId;
         $this->newTaskTitle = '';
@@ -71,6 +77,8 @@ class Board extends Component
         $this->editingTaskId = $task->id;
         $this->editingTitle = $task->title;
         $this->editingDescription = $task->description;
+        $this->editingStartDate = $task->start_date?->format('Y-m-d');
+        $this->editingDueDate = $task->due_date?->format('Y-m-d');
     }
 
     public function cancelEdit():void
@@ -78,12 +86,16 @@ class Board extends Component
         $this->editingTaskId = null;
         $this->editingTitle = '';
         $this->editingDescription = null;
+        $this->editingStartDate = null;
+        $this->editingDueDate = null;
     }
 
     public function saveEdit():void
     {
         $this->validateOnly('editingTitle');
         $this->validateOnly('editingDescription');
+        $this->validateOnly('editingStartDate');
+        $this->validateOnly('editingDueDate');
 
         if(! $this->editingTaskId) {
             return;
@@ -93,6 +105,8 @@ class Board extends Component
         $task->update([
             'title' => $this->editingTitle,
             'description' => $this->editingDescription,
+            'start_date' => $this->editingStartDate,
+            'due_date' => $this->editingDueDate,
         ]);
 
         $this->cancelEdit();
@@ -105,7 +119,7 @@ class Board extends Component
     }
 
     #[On('task-moved')]
-    public function moveTask(int $taskId, int $newStatusId, array $positionIds = []):void 
+    public function moveTask(int $taskId, int $newStatusId, array $positionIds = []):void
     {
         $task = Task::where('user_id', Auth::id())->find($taskId);
 
